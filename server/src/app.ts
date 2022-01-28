@@ -1,10 +1,13 @@
 import express from "express";
 import Database from "better-sqlite3";
+import cors from "cors";
+
+const PORT = 3001;
 
 const db = new Database("navdata.sqlite", { verbose: console.log });
 
 const app = express();
-const port = 3001;
+app.use(cors());
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -18,12 +21,13 @@ app.get("/airport/:code", (req, res) => {
     .get(code.toUpperCase());
 
   if (!data) {
+    console.log("No data found for " + code);
     res.send(404);
   }
 
   res.send(data);
 });
 
-app.listen(port, () => {
-  return console.log(`Express is listening at http://localhost:${port}`);
+app.listen(PORT, () => {
+  return console.log(`Express is listening at http://localhost:${PORT}`);
 });

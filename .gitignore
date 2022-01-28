@@ -8,8 +8,10 @@
 
 # production
 **/build
+**/dist
 
 # misc
 .DS_Store
 .env
 npm-debug.log
+navdata.sqlite

@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import React from "react";
 import useGlobalContext from "../../store/GlobalContext";
+import NewRouteField from "./NewRouteInput";
 
 interface TRouteListItemProps {
   origin: string;
@@ -10,13 +11,15 @@ interface TRouteListItemProps {
 
 const Wrapper = styled.div`
   background-color: #a5b9c01a;
+
+  --primary: #a5b9c0;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   background: #182327;
-  color: #a5b9c0;
+  color: var(--primary);
 
   padding: 1rem;
 
@@ -27,8 +30,8 @@ const Header = styled.div`
 
   button {
     background-color: transparent;
-    color: #a5b9c0;
-    border: 2px solid#a5b9c0;
+    color: var(--primary);
+    border: 2px solid var(--primary);
     border-radius: 4px;
     cursor: pointer;
     font-size: 24px;
@@ -36,7 +39,7 @@ const Header = styled.div`
     padding: 2px 4px;
 
     :hover {
-      background: #a5b9c0;
+      background: var(--primary);
       color: #182327;
     }
   }
@@ -47,6 +50,14 @@ const ListContainer = styled.ul`
   padding: 0;
   margin: 0;
   padding: 0.125rem 0;
+
+  & > li {
+    background: #020202;
+    margin: 0.5rem;
+    padding: 0.5rem;
+    color: var(--primary);
+    font-weight: 500;
+  }
 `;
 
 const Title = styled.h2``;
@@ -55,11 +66,6 @@ const RouteListItemWrapper = styled.li`
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: #020202;
-  margin: 0.5rem;
-  padding: 0.5rem;
-  color: #a5b9c0;
-  font-weight: 500;
 
   & > span:first-child {
     flex-grow: 1;
@@ -97,6 +103,7 @@ const RoutesPanel = () => {
         {routes.map((item) => (
           <RouteListItem {...item} />
         ))}
+        <NewRouteField />
       </ListContainer>
     </Wrapper>
   );
