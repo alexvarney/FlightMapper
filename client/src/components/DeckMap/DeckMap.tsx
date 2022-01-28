@@ -55,15 +55,28 @@ const DeckMap = () => {
     },
   });
 
+  const routeData = globalState.tentativeRoute
+    ? [globalState.tentativeRoute, ...globalState.routes]
+    : globalState.routes;
+
   const routeLayer = new ArcLayer({
     id: "route-layer",
-    data: globalState.routes,
+    data: routeData,
     pickable: true,
     getWidth: 3,
-    getSourcePosition: (d: any) => d.origin.coordinates,
-    getTargetPosition: (d: any) => d.destination.coordinates,
-    getSourceColor: [0, 84, 135],
-    getTargetColor: [0, 143, 219],
+    //ArcLayer needs lng-lats instead of lat-lngs and I don't like that
+    getSourcePosition: (d: any) => [
+      d.origin.coordinates[1],
+      d.origin.coordinates[0],
+    ],
+    getTargetPosition: (d: any) => [
+      d.destination.coordinates[1],
+      d.destination.coordinates[0],
+    ],
+    getSourceColor: (d: any) =>
+      d.id === "tentative" ? [138, 32, 0, 255] : [0, 84, 135],
+    getTargetColor: (d: any) =>
+      d.id === "tentative" ? [196, 46, 0, 100] : [0, 143, 219],
     getHeight: 0.02,
     greatCicle: true,
   });

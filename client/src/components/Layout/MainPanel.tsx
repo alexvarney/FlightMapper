@@ -4,6 +4,8 @@ import RoutesPanel from "../RoutesPanel/RoutesPanel";
 const Wrapper = styled.div`
   width: 100%;
   min-height: 200px;
+  display: flex;
+  flex-direction: column;
 
   z-index: 100;
   background: #020202;
@@ -12,10 +14,11 @@ const Wrapper = styled.div`
   overflow: hidden;
 
   color: #fff;
+`;
 
-  & > *:not(header) {
-    margin: 16px 16px 0 16px;
-  }
+const ScrollWrapper = styled.div`
+  overflow-y: scroll;
+  padding: 16px;
 `;
 
 const Header = styled.header`
@@ -34,7 +37,9 @@ function MainPanel() {
       <Header>
         <h1>flightmapper</h1>
       </Header>
-      <RoutesPanel></RoutesPanel>
+      <ScrollWrapper>
+        <RoutesPanel></RoutesPanel>
+      </ScrollWrapper>
     </Wrapper>
   );
 }

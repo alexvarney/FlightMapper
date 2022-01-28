@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import React from "react";
+import { useState } from "react";
 import useGlobalContext from "../../store/GlobalContext";
 import NewRouteField from "./NewRouteInput";
 
@@ -11,6 +11,8 @@ interface TRouteListItemProps {
 
 const Wrapper = styled.div`
   background-color: #a5b9c01a;
+  display: flex;
+  flex-direction: column;
 
   --primary: #a5b9c0;
 `;
@@ -37,6 +39,8 @@ const Header = styled.div`
     font-size: 24px;
     line-height: 14px;
     padding: 2px 4px;
+    width: 29px;
+    height: 29px;
 
     :hover {
       background: var(--primary);
@@ -71,6 +75,9 @@ const RouteListItemWrapper = styled.li`
     flex-grow: 1;
     font-size: 20px;
   }
+  & > span:last-child {
+    white-space: nowrap;
+  }
 `;
 
 const RouteListItem = (props: TRouteListItemProps) => (
@@ -85,6 +92,7 @@ const RouteListItem = (props: TRouteListItemProps) => (
 
 const RoutesPanel = () => {
   const [globalState] = useGlobalContext();
+  const [showNewRoute, setShowNewRoute] = useState(false);
 
   const routes = globalState.routes.map((item) => ({
     key: item.id,
@@ -97,13 +105,15 @@ const RoutesPanel = () => {
     <Wrapper>
       <Header>
         <Title>Routes</Title>
-        <button>+</button>
+        <button onClick={() => setShowNewRoute((x) => !x)}>
+          {showNewRoute ? "×" : "+"}
+        </button>
       </Header>
       <ListContainer>
+        {showNewRoute && <NewRouteField />}
         {routes.map((item) => (
           <RouteListItem {...item} />
         ))}
-        <NewRouteField />
       </ListContainer>
     </Wrapper>
   );

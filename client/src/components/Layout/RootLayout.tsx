@@ -9,7 +9,6 @@ const Wrapper = styled.div`
   bottom: 0;
   left: 0;
   right: 0;
-  border: 1px solid red;
   display: grid;
   grid-template-columns: 33% 1fr;
   background: rgb(40, 40, 40);
