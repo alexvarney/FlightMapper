@@ -17,8 +17,6 @@ const INITIAL_VIEW_STATE = {
   bearing: 0,
 };
 
-//const controller = new MapController();
-
 // Data to be used by the LineLayer
 
 const MapWrapper = styled.div`
@@ -77,7 +75,7 @@ const DeckMap = () => {
       d.id === "tentative" ? [138, 32, 0, 255] : [0, 84, 135],
     getTargetColor: (d: any) =>
       d.id === "tentative" ? [196, 46, 0, 100] : [0, 143, 219],
-    getHeight: 0.02,
+    getHeight: 0.04,
     greatCicle: true,
   });
 
