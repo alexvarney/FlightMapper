@@ -1,12 +1,15 @@
 import ReactDOM from "react-dom";
+import { GlobalContextProvider } from "./store/GlobalContext";
 import "./index.css";
 import RootLayout from "./components/Layout/RootLayout";
 
 export const App = () => {
   return (
-    <div className="App">
-      <RootLayout />
-    </div>
+    <GlobalContextProvider>
+      <div className="App">
+        <RootLayout />
+      </div>
+    </GlobalContextProvider>
   );
 };
 

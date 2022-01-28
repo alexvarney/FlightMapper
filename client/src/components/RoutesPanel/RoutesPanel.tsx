@@ -1,33 +1,12 @@
-import React from "react";
 import styled from "@emotion/styled";
+import React from "react";
+import useGlobalContext from "../../store/GlobalContext";
 
 interface TRouteListItemProps {
-  id: string;
   origin: string;
   destination: string;
-  description: string;
+  description?: string;
 }
-
-const flights: TRouteListItemProps[] = [
-  {
-    id: "0",
-    description: "Kitchener - Triad",
-    origin: "CYKF",
-    destination: "KGSO",
-  },
-  {
-    id: "1",
-    description: "Kitchener - Lisbon",
-    origin: "CYKF",
-    destination: "LPPT",
-  },
-  {
-    id: "2",
-    description: "Lisbon - Dubai",
-    origin: "LPPT",
-    destination: "OMDB",
-  },
-];
 
 const Wrapper = styled.div`
   background-color: #a5b9c01a;
@@ -99,6 +78,15 @@ const RouteListItem = (props: TRouteListItemProps) => (
 );
 
 const RoutesPanel = () => {
+  const [globalState] = useGlobalContext();
+
+  const routes = globalState.routes.map((item) => ({
+    key: item.id,
+    origin: item.origin.icao,
+    destination: item.destination.icao,
+    description: item.description,
+  }));
+
   return (
     <Wrapper>
       <Header>
@@ -106,8 +94,8 @@ const RoutesPanel = () => {
         <button>+</button>
       </Header>
       <ListContainer>
-        {flights.map((item) => (
-          <RouteListItem key={item.id} {...item} />
+        {routes.map((item) => (
+          <RouteListItem {...item} />
         ))}
       </ListContainer>
     </Wrapper>
