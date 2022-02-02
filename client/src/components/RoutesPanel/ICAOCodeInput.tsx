@@ -1,52 +1,37 @@
-import { useMemo } from "react";
-import { TApiRequest_Airport } from "../../store/types";
-
+import { observer } from "mobx-react-lite";
+import useGlobalContext from "../../store/GlobalContext";
 interface TICAOCodeInputProps {
   name: "from" | "to";
   value: string;
-  onChange: (key: string, value: string) => void;
+  onChange: (value: string) => void;
   forceUppercase?: boolean;
-  airports: Record<string, TApiRequest_Airport | null>;
 }
 
-enum CodeInputStates {
-  default = "deafult",
-  valid = "valid",
-  error = "error",
-  pending = "pending",
-}
-
-const InputColors = {
-  [CodeInputStates.default]: "var(--primary)",
-  [CodeInputStates.valid]: "#47a386",
-  [CodeInputStates.error]: "#b46442",
-  [CodeInputStates.pending]: "#c8b933",
+const getInputColor = (status: string | undefined) => {
+  switch (status) {
+    case "pending":
+      return "#c8b933";
+    case "error":
+      return "#b46442";
+    case "valid":
+      return "#47a386";
+    default:
+      return "var(--primary)";
+  }
 };
 
-const ICAOCodeInput = (props: TICAOCodeInputProps) => {
-  const inputState = useMemo(() => {
-    let state = CodeInputStates.default;
+const ICAOCodeInput = observer((props: TICAOCodeInputProps) => {
+  const rootStore = useGlobalContext();
 
-    if (props.value.length === 4) {
-      if (props.airports[props.value]) {
-        state = CodeInputStates.valid;
-      } else if (props.airports[props.value] === null) {
-        state = CodeInputStates.error;
-      } else {
-        state = CodeInputStates.pending;
-      }
-    }
-
-    return state;
-  }, [props.value, props.airports]);
+  const requestStatus = rootStore.requestStatus.get(props.value)?.status;
+  const inputColor = getInputColor(requestStatus);
 
   return (
     <input
-      style={{ borderColor: InputColors[inputState] }}
+      style={{ borderColor: inputColor }}
       name={props.name}
       onChange={(e) =>
         props.onChange(
-          props.name,
           props.forceUppercase ? e.target.value.toUpperCase() : e.target.value
         )
       }
@@ -54,6 +39,6 @@ const ICAOCodeInput = (props: TICAOCodeInputProps) => {
       value={props.value}
     ></input>
   );
-};
+});
 
 export default ICAOCodeInput;

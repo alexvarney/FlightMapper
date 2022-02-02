@@ -1,30 +1,22 @@
-import { createContext, useContext, useState, FunctionComponent } from "react";
-import { TRoute } from "./types";
+import { getSnapshot } from "mobx-state-tree";
+import { createContext, FunctionComponent, useContext } from "react";
+import { RootStore } from "./root.store";
 
-interface TGlobalContext {
-  routes: TRoute[];
-  tentativeRoute?: TRoute;
-}
+const RootStoreSingleton = RootStore.create({
+  tentativeRoute: {
+    originInput: "",
+    destinationInput: "",
+  },
+});
 
-const initialState: TGlobalContext = {
-  routes: [],
-};
+(window as any).rootStore = RootStoreSingleton;
+(window as any).getSnapshot = getSnapshot;
 
-type TGlobalContextProvider = [
-  TGlobalContext,
-  React.Dispatch<React.SetStateAction<TGlobalContext>>
-];
-
-export const GlobalContext = createContext<TGlobalContextProvider>([
-  { routes: [] as TRoute[] },
-  (args) => undefined,
-]);
+const GlobalContext = createContext(RootStoreSingleton);
 
 export const GlobalContextProvider: FunctionComponent = ({ children }) => {
-  const globalState = useState(initialState);
-
   return (
-    <GlobalContext.Provider value={globalState}>
+    <GlobalContext.Provider value={RootStoreSingleton}>
       {children}
     </GlobalContext.Provider>
   );

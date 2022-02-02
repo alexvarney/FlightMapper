@@ -5,6 +5,8 @@ import DeckGL from "@deck.gl/react";
 import styled from "@emotion/styled";
 import { BitmapLayer, COORDINATE_SYSTEM, ArcLayer, TileLayer } from "deck.gl";
 import { useState } from "react";
+import { observer } from "mobx-react-lite";
+import { getSnapshot } from "mobx-state-tree";
 
 import useGlobalContext from "../../store/GlobalContext";
 
@@ -26,10 +28,10 @@ const MapWrapper = styled.div`
 `;
 
 // DeckGL react component
-const DeckMap = () => {
+const DeckMap = observer(() => {
   const mapboxToken = process.env.REACT_APP_MAPBOX_API;
 
-  const [globalState] = useGlobalContext();
+  const rootStore = useGlobalContext();
 
   const tileLayer = new TileLayer({
     data: `https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`,
@@ -53,13 +55,10 @@ const DeckMap = () => {
     },
   });
 
-  const routeData = globalState.tentativeRoute
-    ? [globalState.tentativeRoute, ...globalState.routes]
-    : globalState.routes;
-
   const routeLayer = new ArcLayer({
     id: "route-layer",
-    data: routeData,
+    //@ts-ignore
+    data: rootStore.routesFeatureCollection,
     pickable: true,
     getWidth: 3,
     //ArcLayer needs lng-lats instead of lat-lngs and I don't like that
@@ -93,6 +92,6 @@ const DeckMap = () => {
       ></DeckGL>
     </MapWrapper>
   );
-};
+});
 
 export default DeckMap;

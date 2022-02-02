@@ -1,5 +1,5 @@
-import { Position } from "geojson";
-
+import { types } from "mobx-state-tree";
+import distance from "@turf/distance";
 export interface TApiRequest_Airport {
   airport_id: number;
   file_id: number;
@@ -72,15 +72,28 @@ export interface TApiRequest_Airport {
   laty: number;
 }
 
-export interface TAirport {
-  name: string;
-  icao: string;
-  coordinates: Position;
-}
+export const AirportModel = types.model("Airport", {
+  name: types.string,
+  icao: types.string,
+  coordinates: types.array(types.number),
+});
 
-export interface TRoute {
-  origin: TAirport;
-  destination: TAirport;
-  id: string;
-  description?: string;
-}
+export const RouteModel = types
+  .model("Route", {
+    id: types.identifier,
+    origin: types.reference(AirportModel),
+    destination: types.reference(AirportModel),
+    description: types.maybe(types.string),
+  })
+  .views((self) => ({
+    get distanceNm() {
+      return distance(self.origin.coordinates, self.destination.coordinates, {
+        units: "nauticalmiles",
+      });
+    },
+    get description() {
+      return (
+        self.description ?? `${self.origin.name} - ${self.destination.name} `
+      );
+    },
+  }));
