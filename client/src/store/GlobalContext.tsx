@@ -1,13 +1,13 @@
 import { getSnapshot } from "mobx-state-tree";
 import { createContext, FunctionComponent, useContext } from "react";
-import { RootStore } from "./root.store";
+//import { RootStore } from "./root.store";
 
-const RootStoreSingleton = RootStore.create({
+const RootStoreSingleton = {
   tentativeRoute: {
     originInput: "",
     destinationInput: "",
   },
-});
+};
 
 (window as any).rootStore = RootStoreSingleton;
 (window as any).getSnapshot = getSnapshot;

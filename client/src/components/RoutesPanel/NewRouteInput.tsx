@@ -1,48 +1,67 @@
-import { observer } from "mobx-react-lite";
 import useGlobalContext from "../../store/GlobalContext";
 import ICAOCodeInput from "./ICAOCodeInput";
 import { AirportInfoRow, NewRouteFieldWrapper } from "./NewRouteInput.style";
+import _distance from "@turf/distance";
 
-const NewRouteField = observer(() => {
-  const rootStore = useGlobalContext();
+import { useStore } from "../../store/root.store";
+import { useMemo } from "react";
+
+const NewRouteField = () => {
+  const [origin, setOrigin, destination, setDestination, airports] = useStore(
+    (state) => [
+      state.tentativeRoute.origin,
+      state.tentativeRoute.setOrigin,
+      state.tentativeRoute.destination,
+      state.tentativeRoute.setDestination,
+      state.airports,
+    ]
+  );
+
+  const [originAirport, destinationAirport] = useMemo(
+    () => [airports[origin ?? ""], airports[destination ?? ""]],
+    [airports, destination, origin]
+  );
+
+  const routeDistance = useMemo(() => {
+    if (!originAirport?.coordinates || !destinationAirport?.coordinates)
+      return null;
+
+    const distNm = Math.round(
+      _distance(originAirport.coordinates, destinationAirport.coordinates, {
+        units: "nauticalmiles",
+      })
+    );
+
+    const formattedNum = new Intl.NumberFormat("en-US").format(distNm);
+
+    return `${formattedNum}nm`;
+  }, [originAirport, destinationAirport]);
 
   return (
     <NewRouteFieldWrapper>
-      <input
-        name="description"
-        placeholder="Description"
-        onChange={(e) =>
-          rootStore.tentativeRoute.setDescription(e.target.value)
-        }
-        value={rootStore.tentativeRoute.description}
-      />
+      <input name="description" placeholder="Description" />
       <ICAOCodeInput
         name="from"
-        onChange={rootStore.tentativeRoute.setOrigin}
-        value={rootStore.tentativeRoute.originInput}
         forceUppercase
+        value={origin ?? ""}
+        onChange={setOrigin}
       />
       <ICAOCodeInput
         name="to"
-        onChange={rootStore.tentativeRoute.setDestination}
-        value={rootStore.tentativeRoute.destinationInput}
         forceUppercase
+        value={destination ?? ""}
+        onChange={setDestination}
       />
-      {rootStore.tentativeRoute.isValid && (
+      {routeDistance && (
         <AirportInfoRow>
-          <span>{rootStore.tentativeRoute.airportNames}</span>
-          <span>
-            {new Intl.NumberFormat("en-US").format(
-              Math.round(rootStore.tentativeRoute.distance)
-            )}
-            nm
-          </span>
+          <span>{`${originAirport?.name} - ${destinationAirport?.name}`}</span>
+          <span>{routeDistance}</span>
 
           <button>Add</button>
         </AirportInfoRow>
       )}
     </NewRouteFieldWrapper>
   );
-});
+};
 
 export default NewRouteField;

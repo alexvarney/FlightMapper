@@ -4,11 +4,8 @@ import GlobeView from "@deck.gl/core/src/views/globe-view";
 import DeckGL from "@deck.gl/react";
 import styled from "@emotion/styled";
 import { BitmapLayer, COORDINATE_SYSTEM, ArcLayer, TileLayer } from "deck.gl";
-import { useState } from "react";
-import { observer } from "mobx-react-lite";
-import { getSnapshot } from "mobx-state-tree";
-
-import useGlobalContext from "../../store/GlobalContext";
+import { useState, useMemo } from "react";
+import { useStore } from "../../store/root.store";
 
 // Viewport settings
 const INITIAL_VIEW_STATE = {
@@ -27,11 +24,42 @@ const MapWrapper = styled.div`
   position: relative;
 `;
 
+const useTentativeRoute = () => {
+  const [_origin, _destination, airports] = useStore((state) => [
+    state.tentativeRoute.origin,
+
+    state.tentativeRoute.destination,
+
+    state.airports,
+  ]);
+
+  const [origin, destination] = useMemo(
+    () => [airports[_origin ?? ""], airports[_destination ?? ""]],
+    [airports, _destination, _origin]
+  );
+
+  return origin && destination
+    ? [
+        {
+          id: "tentative",
+          origin: {
+            name: origin?.name,
+            coordinates: origin?.coordinates,
+          },
+          destination: {
+            name: destination?.name,
+            coordinates: destination?.coordinates,
+          },
+        },
+      ]
+    : [];
+};
+
 // DeckGL react component
-const DeckMap = observer(() => {
+const DeckMap = () => {
   const mapboxToken = process.env.REACT_APP_MAPBOX_API;
 
-  const rootStore = useGlobalContext();
+  const tentativeRoute = useTentativeRoute();
 
   const tileLayer = new TileLayer({
     data: `https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`,
@@ -55,10 +83,12 @@ const DeckMap = observer(() => {
     },
   });
 
+  console.log(tentativeRoute);
+
   const routeLayer = new ArcLayer({
     id: "route-layer",
     //@ts-ignore
-    data: rootStore.routesFeatureCollection,
+    data: tentativeRoute,
     pickable: true,
     getWidth: 3,
     //ArcLayer needs lng-lats instead of lat-lngs and I don't like that
@@ -92,6 +122,6 @@ const DeckMap = observer(() => {
       ></DeckGL>
     </MapWrapper>
   );
-});
+};
 
 export default DeckMap;

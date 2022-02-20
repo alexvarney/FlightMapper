@@ -1,167 +1,66 @@
-import {
-  types,
-  flow,
-  getRoot,
-  Instance,
-  SnapshotOrInstance,
-  getSnapshot,
-  SnapshotOut,
-  SnapshotIn,
-} from "mobx-state-tree";
-import { RouteModel, AirportModel, TApiRequest_Airport } from "./types";
-import { autorun } from "mobx";
-import distance from "@turf/distance";
-import { Feature } from "geojson";
+import { TApiRequest_Airport, TRoute, TAirport } from "./types";
+import create from "zustand";
+import produce from "immer";
 
 export const getAirportInfo: (
   code: String
-) => Promise<TApiRequest_Airport | null> = async (code: String) => {
+) => Promise<TAirport | null> = async (code: String) => {
   return await fetch(`http://localhost:3001/airport/${code}`)
-    .then((res) => res.json())
+    .then((res) => res.json() as Promise<TApiRequest_Airport>)
+    .then((data) => ({
+      icaoId: data.ident,
+      name: data.name,
+      coordinates: [data.laty, data.lonx],
+    }))
     .catch((err) => null);
 };
 
-export enum REQUEST_STATUS {
-  pending,
-  valid,
-  error,
+interface TRootStore {
+  airports: Record<string, TAirport | null>;
+  fetchAirport: (id: string) => Promise<void>;
+  tentativeRoute: {
+    origin?: string;
+    setOrigin: (x: string) => void;
+    destination?: string;
+    setDestination: (x: string) => void;
+  };
 }
 
-const QueryStatusModel = types.model({
-  id: types.identifier,
-  status: types.enumeration(["pending", "valid", "error"]),
-});
-
-const TentativeRouteStore = types
-  .model({
-    originInput: types.string,
-    destinationInput: types.string,
-    description: types.maybe(types.string),
-  })
-  .volatile((self) => {
-    const rootStore = getRoot<any>(self);
-
-    autorun(() => {
-      [self.originInput, self.destinationInput].forEach(
-        (value) => value.length === 4 && rootStore.fetchAirport(value)
+export const useStore = create<TRootStore>((set, get) => ({
+  airports: {},
+  tentativeRoute: {
+    origin: "",
+    setOrigin: (x) => {
+      get().fetchAirport(x);
+      set(
+        produce((state) => {
+          state.tentativeRoute.origin = x;
+        })
       );
-    });
-
-    return { rootStore };
-  })
-  .views((self) => ({
-    get origin() {
-      const origin: Instance<typeof AirportModel> | undefined =
-        self.rootStore.airports.get(self.originInput);
-
-      if (origin) console.log(getSnapshot(origin));
-
-      return origin;
     },
-    get destination() {
-      const destination: Instance<typeof AirportModel> | undefined =
-        self.rootStore.airports.get(self.destinationInput);
-
-      if (destination) console.log(getSnapshot(destination));
-
-      return destination;
+    destination: "",
+    setDestination: (x) => {
+      get().fetchAirport(x);
+      set(
+        produce((state) => {
+          state.tentativeRoute.destination = x;
+        })
+      );
     },
-  }))
-  .views((self) => {
-    return {
-      get isValid() {
-        return !!(self.origin && self.destination);
-      },
+  },
+  fetchAirport: async (icaoId: string) => {
+    if (icaoId.length !== 4 || get().airports[icaoId] !== undefined) return;
 
-      get distance() {
-        console.log(self.origin, self.destination);
+    const res = await getAirportInfo(icaoId);
+    set(
+      produce((state) => {
+        state.airports[icaoId] = res;
+      })
+    );
+  },
+}));
 
-        return !!(self.origin && self.destination)
-          ? distance(self.origin!.coordinates, self.destination!.coordinates, {
-              units: "nauticalmiles",
-            })
-          : -1;
-      },
-
-      get airportNames() {
-        if (!this.isValid) return "";
-
-        return `${
-          self.origin?.name ?? self.origin?.icao ?? self.originInput
-        } - ${
-          self.destination?.name ?? self.destination?.icao ?? self.originInput
-        }`;
-      },
-
-      get tentativeFeature(): any | undefined {
-        if (!this.isValid) return undefined;
-
-        return {
-          id: "tentative",
-          origin: getSnapshot(self.origin!),
-          destination: getSnapshot(self.destination!),
-          description: self.description ?? this.airportNames,
-        };
-      },
-    };
-  })
-  .actions((self) => ({
-    setOrigin: (value: string) => {
-      self.originInput = value;
-    },
-    setDestination: (value: string) => {
-      self.destinationInput = value;
-    },
-    setDescription: (value: string) => {
-      self.description = value;
-    },
-  }));
-
-export const RootStore = types
-  .model("RootStore", {
-    airports: types.map(AirportModel),
-    routes: types.array(RouteModel),
-    requestStatus: types.map(QueryStatusModel),
-    tentativeRoute: TentativeRouteStore,
-  })
-  .views((self) => ({
-    get routesFeatureCollection() {
-      let routes = [...self.routes.slice()];
-
-      if (self.tentativeRoute.isValid) {
-        routes.push(self.tentativeRoute.tentativeFeature);
-      }
-
-      return routes;
-    },
-  }))
-  .actions((self) => ({
-    fetchAirport: flow(function* (icaoId: string) {
-      if (icaoId.length !== 4 || self.requestStatus.has(icaoId)) return;
-
-      self.requestStatus.set(icaoId, {
-        id: icaoId,
-        status: "pending",
-      });
-
-      //not sure why this type isn't inferred, oh well
-      const result: TApiRequest_Airport | null = yield getAirportInfo(icaoId);
-
-      if (result) {
-        self.requestStatus.set(icaoId, {
-          id: icaoId,
-          status: "valid",
-        });
-        self.airports.set(result.ident, {
-          icao: result.ident,
-          name: result.name,
-          coordinates: [result.laty, result.lonx],
-        });
-      } else {
-        self.requestStatus.set(icaoId, {
-          id: icaoId,
-          status: "error",
-        });
-      }
-    }),
-  }));
+// useStore.subscribe((state) => [
+//   state.tentativeRoute.origin,
+//   state.tentativeRoute.destination,
+// ]);

@@ -1,7 +1,6 @@
 import { useState } from "react";
-import useGlobalContext from "../../store/GlobalContext";
+
 import NewRouteField from "./NewRouteInput";
-import { observer } from "mobx-react-lite";
 
 import {
   Wrapper,
@@ -27,16 +26,15 @@ const RouteListItem = (props: TRouteListItemProps) => (
   </RouteListItemWrapper>
 );
 
-const RoutesPanel = observer(() => {
-  const rootStore = useGlobalContext();
+const RoutesPanel = () => {
   const [showNewRoute, setShowNewRoute] = useState(false);
 
-  const routes = rootStore.routes.map((item) => ({
-    key: item.id,
-    origin: item.origin.icao,
-    destination: item.destination.icao,
-    description: item.description,
-  }));
+  // const routes = rootStore.routes.map((item) => ({
+  //   key: item.id,
+  //   origin: item.origin.icao,
+  //   destination: item.destination.icao,
+  //   description: item.description,
+  // }));
 
   return (
     <Wrapper>
@@ -48,12 +46,12 @@ const RoutesPanel = observer(() => {
       </Header>
       <ListContainer>
         {showNewRoute && <NewRouteField />}
-        {routes.map((item) => (
+        {/* {routes.map((item) => (
           <RouteListItem {...item} />
-        ))}
+        ))} */}
       </ListContainer>
     </Wrapper>
   );
-});
+};
 
 export default RoutesPanel;

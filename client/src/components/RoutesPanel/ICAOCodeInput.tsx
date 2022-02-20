@@ -1,5 +1,3 @@
-import { observer } from "mobx-react-lite";
-import useGlobalContext from "../../store/GlobalContext";
 interface TICAOCodeInputProps {
   name: "from" | "to";
   value: string;
@@ -20,11 +18,8 @@ const getInputColor = (status: string | undefined) => {
   }
 };
 
-const ICAOCodeInput = observer((props: TICAOCodeInputProps) => {
-  const rootStore = useGlobalContext();
-
-  const requestStatus = rootStore.requestStatus.get(props.value)?.status;
-  const inputColor = getInputColor(requestStatus);
+const ICAOCodeInput = (props: TICAOCodeInputProps) => {
+  const inputColor = getInputColor(undefined);
 
   return (
     <input
@@ -39,6 +34,6 @@ const ICAOCodeInput = observer((props: TICAOCodeInputProps) => {
       value={props.value}
     ></input>
   );
-});
+};
 
 export default ICAOCodeInput;
